@@ -59,6 +59,19 @@ class GameState:
         self.speaking_order_direction: str = "clockwise"  # 发言顺序方向
         self.last_death_seat: Optional[int] = None    # 最近死者座位号（取最小）
 
+        # 女巫用药历史记录
+        self.witch_action_history: List[Dict[str, Any]] = []
+        # 格式：[
+        #   {
+        #       "round": 1,
+        #       "action_type": "save",  # "save"/"poison"/"skip"
+        #       "target_name": "玩家A",
+        #       "target_id": 3,
+        #       "remaining_antidote": False,
+        #       "remaining_poison": True
+        #   }
+        # ]
+
     def add_speech(self, round_num: int, player: Player, content: str):
         """记录玩家发言"""
         self.conversation_history.append({
@@ -156,33 +169,20 @@ class GameState:
         """
         检查狼人是否获胜
 
-        狼人获胜条件：
-        1. 所有神职（预言家、女巫、猎人）全部死亡，OR
-        2. 所有平民全部死亡
+        标准规则：狼人数量 >= 好人数量
+        原因：当狼人数量达到或超过好人数量时，狼人在投票中已掌控局面
         """
         werewolves = self.get_alive_werewolves()
 
         if len(werewolves) == 0:
             return False
 
-        # 统计存活的神职和平民
-        from roles.base_role import RoleType
+        # 统计好人数量（所有非狼人阵营的玩家）
+        good_guys = [p for p in self.alive_players
+                     if p.role.camp == RoleCamp.VILLAGER]
 
-        alive_gods = []  # 神职：预言家、女巫、猎人
-        alive_civilians = []  # 平民：村民
-
-        for player in self.alive_players:
-            if player.role.camp == RoleCamp.VILLAGER:
-                if player.role.role_type in [RoleType.SEER, RoleType.WITCH, RoleType.HUNTER]:
-                    alive_gods.append(player)
-                elif player.role.role_type == RoleType.VILLAGER:
-                    alive_civilians.append(player)
-
-        # 狼人获胜：所有神职死光 OR 所有平民死光
-        all_gods_dead = len(alive_gods) == 0
-        all_civilians_dead = len(alive_civilians) == 0
-
-        return all_gods_dead or all_civilians_dead
+        # 标准规则：狼人数 >= 好人数
+        return len(werewolves) >= len(good_guys)
 
     def check_villager_victory(self) -> bool:
         """检查好人是否获胜"""
@@ -410,6 +410,113 @@ class GameState:
 
         # 默认返回第一个存活座位
         return alive_seats[0] if alive_seats else 1
+
+    def record_witch_action(
+        self,
+        round_num: int,
+        action_type: str,  # "save"/"poison"/"skip"
+        target: Optional['Player'],
+        remaining_antidote: bool,
+        remaining_poison: bool
+    ) -> None:
+        """
+        记录女巫用药历史
+
+        Args:
+            round_num: 轮次
+            action_type: 行动类型（save/poison/skip）
+            target: 目标玩家（如果是skip则为None）
+            remaining_antidote: 剩余解药
+            remaining_poison: 剩余毒药
+        """
+        self.witch_action_history.append({
+            "round": round_num,
+            "action_type": action_type,
+            "target_name": target.name if target else "无",
+            "target_id": target.id if target else 0,
+            "remaining_antidote": remaining_antidote,
+            "remaining_poison": remaining_poison,
+            "timestamp": datetime.now().isoformat()
+        })
+
+    def get_witch_action_summary(self) -> str:
+        """
+        获取女巫用药历史摘要（供AI生成发言使用）
+
+        Returns:
+            str: 格式化的用药历史
+        """
+        if not self.witch_action_history:
+            return "你还没有使用过任何药物"
+
+        summary_lines = []
+        for record in self.witch_action_history:
+            round_num = record["round"]
+            action_type = record["action_type"]
+            target_name = record["target_name"]
+
+            if action_type == "save":
+                summary_lines.append(
+                    f"第{round_num}轮：使用解药救了{target_name}"
+                )
+            elif action_type == "poison":
+                summary_lines.append(
+                    f"第{round_num}轮：使用毒药毒死了{target_name}"
+                )
+            elif action_type == "skip":
+                summary_lines.append(
+                    f"第{round_num}轮：没有使用任何药物"
+                )
+
+        # 添加当前剩余药物状态
+        if self.witch_action_history:
+            last_record = self.witch_action_history[-1]
+            remaining = []
+            if last_record["remaining_antidote"]:
+                remaining.append("解药")
+            if last_record["remaining_poison"]:
+                remaining.append("毒药")
+
+            if remaining:
+                summary_lines.append(f"当前剩余：{', '.join(remaining)}")
+            else:
+                summary_lines.append("当前剩余：无药物")
+
+        return "\n".join(summary_lines)
+
+    def get_victory_reason(self, winner: str) -> str:
+        """
+        获取胜利原因的详细说明
+
+        Args:
+            winner: 获胜阵营（"狼人阵营" 或 "好人阵营"）
+
+        Returns:
+            str: 胜利原因的详细说明
+        """
+        werewolves = self.get_alive_werewolves()
+        good_guys = [p for p in self.alive_players
+                     if p.role.camp == RoleCamp.VILLAGER]
+
+        if winner == "狼人阵营":
+            if len(werewolves) >= len(good_guys):
+                return f"""
+【胜利原因】
+当前局势：{len(werewolves)}只狼人 vs {len(good_guys)}个好人
+根据标准狼人杀规则，当狼人数量 >= 好人数量时，狼人已在投票中掌控局面，游戏结束。
+
+存活狼人：{', '.join([f'{w.name}（{w.id}号）' for w in werewolves])}
+存活好人：{', '.join([f'{g.name}（{g.id}号，{g.role.role_type.value}）' for g in good_guys])}
+"""
+        elif winner == "好人阵营":
+            return f"""
+【胜利原因】
+所有狼人已被淘汰！好人阵营成功保卫了村庄！
+
+存活好人：{', '.join([f'{g.name}（{g.id}号，{g.role.role_type.value}）' for g in good_guys])}
+"""
+
+        return ""
 
     def __repr__(self) -> str:
         return (

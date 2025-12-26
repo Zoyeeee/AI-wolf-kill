@@ -27,8 +27,9 @@ class Settings:
         """验证配置是否完整"""
         if not cls.DEEPSEEK_API_KEY:
             raise ValueError("DEEPSEEK_API_KEY is required in .env file")
-        if not cls.REDIS_HOST:
-            raise ValueError("REDIS_HOST is required in .env file")
+        # Redis配置验证已禁用，因为当前版本不使用Redis
+        # if not cls.REDIS_HOST:
+        #     raise ValueError("REDIS_HOST is required in .env file")
         return True
 
 

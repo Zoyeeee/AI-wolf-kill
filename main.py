@@ -27,6 +27,11 @@ class WolfkillGame:
         self.god_ai = GodAI()
         self.player_ai = PlayerAI()
 
+        # 调试信息：确认每次都创建新实例
+        import random
+        self.instance_id = random.randint(10000, 99999)
+        print(f"[DEBUG] 创建新游戏实例 ID: {self.instance_id}")
+
     async def setup_game(self):
         """设置游戏"""
         CLI.print_header("狼人杀游戏")
@@ -119,10 +124,10 @@ class WolfkillGame:
             # 白天阶段
             await self.day_phase()
 
-            # 白天发言后只检查是否所有狼人已死（好人直接获胜）
-            # 不检查狼人获胜条件，让投票阶段完成
-            if len(self.game_state.get_alive_werewolves()) == 0:
-                await self.end_game("好人阵营")
+            # 完整检查胜负（包括好人和狼人）
+            winner = self.game_state.is_game_over()
+            if winner:
+                await self.end_game(winner)
                 break
 
             # 投票阶段
@@ -136,6 +141,9 @@ class WolfkillGame:
 
     async def night_phase(self):
         """夜晚阶段 - 完整实现"""
+        # 显示轮次信息
+        self.show_round_info()
+
         CLI.print_header(f"第{self.game_state.round_number}轮 - 夜晚")
 
         self.game_state.current_phase = "night"
@@ -240,7 +248,7 @@ class WolfkillGame:
             if is_human_werewolf:
                 print("\n狼人选择空刀。")
             else:
-                print("\n狼人选择空刀。")
+                print("\n[系统] 狼人今夜未行动")
             # 空刀，不设置受害者
             self.game_state.tonight_victim = None
             self.game_state.last_werewolf_target = "空刀"
@@ -271,6 +279,10 @@ class WolfkillGame:
         # 设置今晚的受害者
         self.game_state.tonight_victim = target
         self.game_state.last_werewolf_target = target.name
+
+        # 系统提示（新增）
+        if not is_human_werewolf:
+            print("\n[系统] 狼人已确定今夜目标")
 
     async def seer_check_phase(self):
         """预言家查验阶段"""
@@ -325,6 +337,14 @@ class WolfkillGame:
                 f"{target.name}（{target.id}号）是{result}"
             )
 
+            # 系统提示（新增）
+            if not is_human_seer:
+                print("\n[系统] 预言家已完成查验")
+        else:
+            # 系统提示（新增）
+            if not is_human_seer:
+                print("\n[系统] 预言家未查验")
+
         await asyncio.sleep(0.5)
 
     async def witch_action_phase(self):
@@ -376,6 +396,19 @@ class WolfkillGame:
                 if is_human_witch:
                     print(f"\n你使用了解药，救了 {target.name}")
 
+                # 记录到历史
+                self.game_state.record_witch_action(
+                    round_num=self.game_state.round_number,
+                    action_type="save",
+                    target=target,
+                    remaining_antidote=witch_role.has_antidote,
+                    remaining_poison=witch_role.has_poison
+                )
+
+                # 系统提示（新增）
+                if not is_human_witch:
+                    print("\n[系统] 女巫已使用药物")
+
             elif action_type == "poison":
                 # 使用毒药
                 self.game_state.poisoned_tonight.append(target)
@@ -383,8 +416,33 @@ class WolfkillGame:
                 if is_human_witch:
                     print(f"\n你使用了毒药，毒死了 {target.name}")
 
-        elif is_human_witch:
-            print("\n你选择跳过。")
+                # 记录到历史
+                self.game_state.record_witch_action(
+                    round_num=self.game_state.round_number,
+                    action_type="poison",
+                    target=target,
+                    remaining_antidote=witch_role.has_antidote,
+                    remaining_poison=witch_role.has_poison
+                )
+
+                # 系统提示（新增）
+                if not is_human_witch:
+                    print("\n[系统] 女巫已使用药物")
+        else:
+            # 跳过
+            self.game_state.record_witch_action(
+                round_num=self.game_state.round_number,
+                action_type="skip",
+                target=None,
+                remaining_antidote=witch_role.has_antidote,
+                remaining_poison=witch_role.has_poison
+            )
+
+            if is_human_witch:
+                print("\n你选择跳过。")
+            else:
+                # 系统提示（新增）
+                print("\n[系统] 女巫未使用药物")
 
         await asyncio.sleep(0.5)
 
@@ -400,16 +458,19 @@ class WolfkillGame:
             if dead_player.role.role_type == RoleType.HUNTER:
                 hunter = dead_player
                 # 检查是否被毒死（被毒死不能开枪）
-                was_poisoned = dead_player in [p for p in deaths if hasattr(self.game_state, 'poisoned_tonight') and p in self.game_state.poisoned_tonight]
+                was_poisoned = dead_player in self.game_state.poisoned_tonight
                 break
 
         if not hunter or was_poisoned:
+            if hunter and was_poisoned:
+                print(f"\n{hunter.name} 是猎人，但因为被女巫毒死，无法发动技能。")
             return
 
         # 猎人可以开枪
         hunter_role = hunter.role
 
         if not hunter_role.can_shoot:
+            print(f"\n{hunter.name} 是猎人，但已经开过枪，无法再次发动技能。")
             return
 
         # 判断是否是真人猎人
@@ -906,16 +967,110 @@ class WolfkillGame:
         # 检查被放逐的是否是警长，如果是可以传递警徽
         await self.handle_sheriff_death(exiled)
 
+    def show_round_info(self):
+        """显示当前轮次的简要信息"""
+        werewolves = self.game_state.get_alive_werewolves()
+        good_guys = [p for p in self.game_state.alive_players
+                     if p.role.camp == RoleCamp.VILLAGER]
+
+        print(f"\n【第{self.game_state.round_number}轮】 存活：{len(werewolves)}狼 vs {len(good_guys)}好人")
+        if self.game_state.sheriff_player_id:
+            sheriff = next((p for p in self.game_state.all_players if p.id == self.game_state.sheriff_player_id), None)
+            if sheriff:
+                print(f"当前警长：{sheriff.name}（{sheriff.id}号）")
+
+    async def save_game_log(self, winner: str):
+        """
+        保存游戏日志到JSON文件
+
+        Args:
+            winner: 获胜阵营
+        """
+        import json
+        from datetime import datetime
+        import os
+
+        # 创建存储目录
+        storage_dir = "storage/game_logs"
+        os.makedirs(storage_dir, exist_ok=True)
+
+        # 生成文件名（时间戳）
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{storage_dir}/game_{timestamp}.json"
+
+        # 构建游戏日志数据
+        game_log = {
+            "game_info": {
+                "end_time": datetime.now().isoformat(),
+                "winner": winner,
+                "total_rounds": self.game_state.round_number,
+                "board_config": self.game_state.board_config,
+                "total_players": len(self.game_state.all_players),
+                "alive_count": len(self.game_state.alive_players),
+                "dead_count": len(self.game_state.dead_players)
+            },
+            "players": [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "role": p.role.role_type.value,
+                    "camp": p.role.camp.value,
+                    "is_alive": p.is_alive,
+                    "is_sheriff": (p.id == self.game_state.sheriff_player_id)
+                }
+                for p in self.game_state.all_players
+            ],
+            "conversation_history": self.game_state.conversation_history,
+            "witch_actions": self.game_state.witch_action_history,
+            "seer_checks": {
+                str(player_id): results
+                for player_id, results in self.game_state.seer_check_results.items()
+            },
+            "victory_reason": self.game_state.get_victory_reason(winner)
+        }
+
+        # 保存到文件
+        try:
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(game_log, f, ensure_ascii=False, indent=2)
+            print(f"\n✓ 游戏日志已保存：{filename}")
+        except Exception as e:
+            print(f"\n✗ 保存游戏日志失败：{e}")
+
     async def end_game(self, winner: str):
-        """结束游戏"""
-        CLI.print_header("游戏结束")
+        """游戏结束，显示详细总结"""
 
-        victory_message = await self.god_ai.announce_victory(winner, self.game_state.round_number)
-        print(f"\n{victory_message}\n")
+        print(f"\n[DEBUG] 游戏实例 ID: {self.instance_id} 结束")
+        print("\n" + "=" * 50)
+        print("  游戏结束")
+        print("=" * 50)
 
-        # 显示所有玩家身份
-        print("玩家身份揭晓：")
-        print(Display.format_player_list(self.game_state.all_players, show_role=True))
+        # 显示胜利方
+        print(f"\n🎉 {winner} 获得胜利！\n")
+
+        # 显示详细的胜利原因
+        victory_reason = self.game_state.get_victory_reason(winner)
+        print(victory_reason)
+
+        # 显示游戏统计
+        print("\n【游戏统计】")
+        print(f"游戏轮数：{self.game_state.round_number}轮")
+        print(f"总玩家数：{len(self.game_state.all_players)}人")
+        print(f"存活人数：{len(self.game_state.alive_players)}人")
+        print(f"死亡人数：{len(self.game_state.dead_players)}人")
+
+        # 显示玩家身份揭晓
+        print("\n【玩家身份揭晓】")
+        from roles.base_role import RoleCamp
+        for player in self.game_state.all_players:
+            status = "✓存活" if player.is_alive else "✗死亡"
+            camp_emoji = "🐺" if player.role.camp == RoleCamp.WEREWOLF else "👤"
+            print(f"{player.id}号 {player.name} [{status}] - {camp_emoji} {player.role.role_type.value}")
+
+        # 保存游戏日志（新增）
+        await self.save_game_log(winner)
+
+        print("\n" + "=" * 50)
 
 
 async def main():

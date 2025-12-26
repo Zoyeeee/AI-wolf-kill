@@ -37,7 +37,10 @@ class LLMClient:
             response = await self.llm.ainvoke(prompt)
             return response.content.strip()
         except Exception as e:
-            print(f"LLM生成错误: {e}")
+            import traceback
+            print(f"LLM生成错误: {type(e).__name__}: {e}")
+            print("完整堆栈跟踪：")
+            traceback.print_exc()
             return ""
 
     def generate_sync(self, prompt: str) -> str:
@@ -54,7 +57,10 @@ class LLMClient:
             response = self.llm.invoke(prompt)
             return response.content.strip()
         except Exception as e:
-            print(f"LLM生成错误: {e}")
+            import traceback
+            print(f"LLM生成错误: {type(e).__name__}: {e}")
+            print("完整堆栈跟踪：")
+            traceback.print_exc()
             return ""
 
 

@@ -31,6 +31,10 @@ class Witch(BaseRole):
         self.has_antidote = True  # 是否还有解药
         self.has_poison = True    # 是否还有毒药
         self.used_antidote_on_self = False  # 是否用解药救过自己
+        # DEBUG: 确认每次都创建新的女巫实例
+        import random
+        self._instance_id = random.randint(1000, 9999)
+        # print(f"[DEBUG] 创建新女巫实例 {self._instance_id}, 解药={self.has_antidote}, 毒药={self.has_poison}")
 
     def get_role_description(self) -> str:
         """获取角色描述"""

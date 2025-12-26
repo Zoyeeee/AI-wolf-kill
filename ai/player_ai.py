@@ -60,6 +60,34 @@ class PlayerAI:
         return f"""本局游戏：{config_name}（{total_players}人局）
 角色配置：{', '.join(role_list)}"""
 
+    def _get_good_god_roles(self, board_config: str) -> str:
+        """
+        获取好人神职列表（根据板子配置）
+
+        Args:
+            board_config: 板子配置名称
+
+        Returns:
+            str: 好人神职列表，用顿号分隔
+        """
+        role_composition = ROLE_COMPOSITIONS.get(board_config, ROLE_COMPOSITIONS["basic"])
+
+        # 角色中文名映射
+        role_names = {
+            "seer": "预言家",
+            "witch": "女巫",
+            "hunter": "猎人",
+            "guard": "守卫"
+        }
+
+        # 获取好人神职（排除狼人和村民）
+        god_roles = []
+        for role_key in role_composition.keys():
+            if role_key not in ["werewolf", "villager"] and role_key in role_names:
+                god_roles.append(role_names[role_key])
+
+        return "、".join(god_roles) if god_roles else "无"
+
     async def generate_speech(
         self,
         player: 'Player',
@@ -107,12 +135,14 @@ class PlayerAI:
 
         # 生成板子信息
         board_info = self._get_board_info(game_state.board_config)
+        good_god_roles = self._get_good_god_roles(game_state.board_config)
 
         prompt_data = {
             "player_name": player.name,
             "player_id": player.id,
             "round": game_state.round_number,
             "board_info": board_info,
+            "good_god_roles": good_god_roles,
             "alive_players": alive_list,
             "dead_players": dead_list,
             "last_night_victim": getattr(game_state, 'last_night_victim_name', "无"),
@@ -127,6 +157,10 @@ class PlayerAI:
         # 预言家特有信息
         if role_type == RoleType.SEER:
             prompt_data["check_results"] = getattr(game_state, 'seer_check_results', {}).get(player.id, "暂无")
+
+        # 女巫特有信息
+        if role_type == RoleType.WITCH:
+            prompt_data["witch_action_history"] = game_state.get_witch_action_summary()
 
         prompt = prompt_template.format(**prompt_data)
 
@@ -374,8 +408,10 @@ class PlayerAI:
 
         actions = []
 
+        # 女巫不能救自己
         if witch_role.has_antidote and game_state.tonight_victim:
-            actions.append(("save", game_state.tonight_victim))
+            if game_state.tonight_victim.id != player.id:
+                actions.append(("save", game_state.tonight_victim))
 
         if witch_role.has_poison:
             alive = [p for p in game_state.alive_players if p.id != player.id]
