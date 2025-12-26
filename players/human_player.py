@@ -132,17 +132,21 @@ class HumanPlayer(Player):
 
         print(f"\n【女巫行动】")
         print(f"⚠️  规则：每晚只能使用一种药（解药或毒药），不能同时使用")
+        print(f"⚠️  规则：女巫不能使用解药救自己")
         print(f"剩余药水：{witch_role.get_remaining_potions()}\n")
 
         options = ["跳过"]
         option_idx = 1
 
-        # 检查是否可以救人
+        # 检查是否可以救人（女巫不能救自己）
         if witch_role.has_antidote and game_state.tonight_victim:
             victim = game_state.tonight_victim
-            print(f"今晚的受害者是：{victim.name}（{victim.id}号）")
-            options.append(f"使用解药救 {victim.name}")
-            option_idx += 1
+            if victim.id != self.id:
+                print(f"今晚的受害者是：{victim.name}（{victim.id}号）")
+                options.append(f"使用解药救 {victim.name}")
+                option_idx += 1
+            else:
+                print(f"今晚的受害者是你自己，但女巫不能使用解药救自己")
 
         # 检查是否可以毒人
         poison_idx = None

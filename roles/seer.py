@@ -28,6 +28,10 @@ class Seer(BaseRole):
         self.has_night_action = True
         self.action_priority = 2  # 在狼人之后
         self.checked_players: List[int] = []  # 记录已查验的玩家ID
+        # DEBUG: 确认每次都创建新的预言家实例
+        import random
+        self._instance_id = random.randint(1000, 9999)
+        # print(f"[DEBUG] 创建新预言家实例 {self._instance_id}, checked_players={self.checked_players}")
 
     def get_role_description(self) -> str:
         """获取角色描述"""

@@ -45,13 +45,20 @@ class CLI:
         """
         loop = asyncio.get_event_loop()
         while True:
-            user_input = await loop.run_in_executor(None, input, prompt)
-            user_input = user_input.strip()
+            try:
+                user_input = await loop.run_in_executor(None, input, prompt)
+                user_input = user_input.strip()
 
-            if user_input or allow_empty:
-                return user_input
+                if user_input or allow_empty:
+                    return user_input
 
-            print("输入不能为空，请重新输入。")
+                print("输入不能为空，请重新输入。")
+            except EOFError:
+                print("\n检测到输入流关闭（EOF），游戏将退出。")
+                raise SystemExit(0)
+            except KeyboardInterrupt:
+                print("\n检测到用户中断（Ctrl+C），游戏将退出。")
+                raise SystemExit(0)
 
     @staticmethod
     async def get_number_input(
@@ -80,6 +87,12 @@ class CLI:
                     return number
 
                 print(f"请输入{min_val}到{max_val}之间的数字。")
+            except EOFError:
+                print("\n检测到输入流关闭（EOF），游戏将退出。")
+                raise SystemExit(0)
+            except KeyboardInterrupt:
+                print("\n检测到用户中断（Ctrl+C），游戏将退出。")
+                raise SystemExit(0)
             except ValueError:
                 print("输入无效，请输入数字。")
 
