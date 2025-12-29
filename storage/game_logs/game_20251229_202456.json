@@ -1,0 +1,176 @@
+{
+  "game_info": {
+    "end_time": "2025-12-29T20:24:56.936312",
+    "winner": "狼人阵营",
+    "total_rounds": 1,
+    "board_config": "basic",
+    "total_players": 9,
+    "alive_count": 6,
+    "dead_count": 3
+  },
+  "players": [
+    {
+      "id": 1,
+      "name": "tset12",
+      "role": "预言家",
+      "camp": "好人阵营",
+      "is_alive": false,
+      "is_sheriff": false
+    },
+    {
+      "id": 2,
+      "name": "AI-2",
+      "role": "狼人",
+      "camp": "狼人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    },
+    {
+      "id": 3,
+      "name": "AI-3",
+      "role": "猎人",
+      "camp": "好人阵营",
+      "is_alive": false,
+      "is_sheriff": false
+    },
+    {
+      "id": 4,
+      "name": "AI-4",
+      "role": "村民",
+      "camp": "好人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    },
+    {
+      "id": 5,
+      "name": "AI-5",
+      "role": "女巫",
+      "camp": "好人阵营",
+      "is_alive": false,
+      "is_sheriff": false
+    },
+    {
+      "id": 6,
+      "name": "AI-6",
+      "role": "狼人",
+      "camp": "狼人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    },
+    {
+      "id": 7,
+      "name": "AI-7",
+      "role": "村民",
+      "camp": "好人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    },
+    {
+      "id": 8,
+      "name": "AI-8",
+      "role": "村民",
+      "camp": "好人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    },
+    {
+      "id": 9,
+      "name": "AI-9",
+      "role": "狼人",
+      "camp": "狼人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    }
+  ],
+  "conversation_history": [
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 0,
+      "player_name": "系统",
+      "action_type": "announcement",
+      "content": "昨晚死亡：AI-5（5号）、AI-3（3号）",
+      "timestamp": "2025-12-29T20:22:58.588457"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 0,
+      "player_name": "系统",
+      "action_type": "announcement",
+      "content": "AI-3（3号）发动猎人技能，开枪带走了tset12（1号）",
+      "timestamp": "2025-12-29T20:22:59.590157"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 9,
+      "player_name": "AI-9",
+      "action_type": "speech",
+      "content": "昨晚死了5号，现在场上还有6个人。从死亡情况看，3号是猎人带走了1号，说明1号大概率是狼或者被猎人怀疑的玩家。目前信息还比较少，我建议大家都好好发言，分析一下3号为什么开枪带1号，这可能是关键线索。我是好人，会认真听大家的分析。",
+      "timestamp": "2025-12-29T20:23:05.550443"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 6,
+      "player_name": "AI-6",
+      "action_type": "speech",
+      "content": "昨晚死了5号，现在场上还有6个人。3号猎人带走了1号，说明1号大概率是狼或者被猎人怀疑。目前信息还比较少，我建议大家都好好发言，分析一下3号为什么开枪带1号，这可能是关键线索。我是好人，会认真听大家的分析。",
+      "timestamp": "2025-12-29T20:23:24.903430"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 8,
+      "player_name": "AI-8",
+      "action_type": "speech",
+      "content": "昨晚死了5号，3号猎人带走了1号，这个信息很关键。3号作为猎人，开枪带走1号，说明他大概率认定了1号是狼，或者至少是威胁。现在场上还有6人，我们需要分析1号和3号的关系，以及5号为什么被刀。我是村民，会仔细听后续发言，希望好人能团结找出狼人。",
+      "timestamp": "2025-12-29T20:23:42.301263"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 4,
+      "player_name": "AI-4",
+      "action_type": "speech",
+      "content": "昨晚死了5号，3号猎人带走了1号，这个信息确实关键。3号开枪带走1号，大概率是认定了1号有威胁，可能是狼。现在场上还有6人，我们需要仔细分析1号和3号的关系，以及5号为什么被刀。我是村民，会认真听大家的发言，希望好人能一起找出狼人。",
+      "timestamp": "2025-12-29T20:24:02.651617"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 7,
+      "player_name": "AI-7",
+      "action_type": "speech",
+      "content": "昨晚死了5号，3号猎人带走了1号，这个信息确实很关键。3号开枪带走1号，说明他临死前认定了1号是狼或者有重大威胁。现在场上还有6人，我们需要重点关注1号之前的可能行为，以及5号为什么被刀。我是村民，会仔细听大家的发言，希望好人能一起分析线索，找出狼人。",
+      "timestamp": "2025-12-29T20:24:21.327963"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 2,
+      "player_name": "AI-2",
+      "action_type": "speech",
+      "content": "昨晚死了5号，3号猎人带走了1号，这个信息确实很关键。3号开枪带走1号，说明他临死前认定了1号是狼或者有重大威胁。现在场上还有6人，我们需要重点关注1号之前的可能行为，以及5号为什么被刀。我是村民，会仔细听大家的发言，希望好人能一起分析线索，找出狼人。",
+      "timestamp": "2025-12-29T20:24:44.671011"
+    }
+  ],
+  "witch_actions": [
+    {
+      "round": 1,
+      "action_type": "poison",
+      "target_name": "AI-3",
+      "target_id": 3,
+      "remaining_antidote": true,
+      "remaining_poison": false,
+      "timestamp": "2025-12-29T20:22:55.630801"
+    }
+  ],
+  "seer_checks": {
+    "1": [
+      "AI-4（4号）是好人"
+    ]
+  },
+  "victory_reason": "\n【胜利原因】\n当前局势：3只狼人 vs 3个好人\n根据标准狼人杀规则，当狼人数量 >= 好人数量时，狼人已在投票中掌控局面，游戏结束。\n\n存活狼人：AI-2（2号）, AI-6（6号）, AI-9（9号）\n存活好人：AI-4（4号，村民）, AI-7（7号，村民）, AI-8（8号，村民）\n"
+}

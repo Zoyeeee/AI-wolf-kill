@@ -20,12 +20,53 @@ class AIPlayer(Player):
     def __init__(self, player_id: int, name: str, role: 'BaseRole', ai_client: 'PlayerAI'):
         super().__init__(player_id, name, role)
         self.ai = ai_client
+        # AI角色推理数据库：存储对其他玩家的角色推断
+        # 格式: {player_id: {suspected_roles: [], camp_belief: str, confidence: str, reasoning: str}}
+        self.role_beliefs = {}
 
     async def make_speech(self, game_state: 'GameState') -> str:
         """AI玩家发言 - 通过AI生成"""
+        # 在发言前，先更新该AI对其他玩家的角色推理
+        await self._update_role_beliefs_before_speech(game_state)
+
         speech = await self.ai.generate_speech(self, game_state)
         self.add_speech(speech)
         return speech
+
+    async def _update_role_beliefs_before_speech(self, game_state: 'GameState'):
+        """
+        在发言前更新角色推理
+
+        分析所有之前的发言，更新对其他玩家的角色推断
+        """
+        # 获取最近的几条发言（不包括自己）
+        recent_speeches = []
+        for record in game_state.conversation_history[-10:]:  # 最近10条记录
+            if record.get('action_type') == 'speech' and record.get('player_id') != self.id:
+                recent_speeches.append({
+                    'player_id': record['player_id'],
+                    'player_name': record['player_name'],
+                    'content': record['content']
+                })
+
+        # 如果有新的发言，更新角色推理
+        if recent_speeches:
+            # 合并最近的发言为一个摘要
+            speech_summary = "\n".join([
+                f"{s['player_id']}号{s['player_name']}: {s['content']}"
+                for s in recent_speeches[-3:]  # 只取最近3条
+            ])
+
+            try:
+                await self.ai.update_role_beliefs(
+                    self,
+                    game_state,
+                    recent_speeches[-1]['player_id'],  # 最后一个发言者
+                    speech_summary
+                )
+            except Exception as e:
+                # 更新失败不影响发言
+                pass
 
     async def vote(self, game_state: 'GameState') -> Optional['Player']:
         """AI玩家投票 - 通过AI决策"""
@@ -66,17 +107,8 @@ class AIPlayer(Player):
         return await self.ai.choose_witch_action(self, game_state, witch_role)
 
     async def decide_sheriff_candidacy(self, game_state: 'GameState') -> bool:
-        """AI决定是否竞选警长"""
-        from roles.base_role import RoleType, RoleCamp
-        import random
-
-        # 策略：神职70%/狼人50%/村民30%概率竞选
-        if self.role.role_type in [RoleType.SEER, RoleType.WITCH, RoleType.HUNTER]:
-            return random.random() < 0.7
-        elif self.role.camp == RoleCamp.WEREWOLF:
-            return random.random() < 0.5
-        else:
-            return random.random() < 0.3
+        """AI决定是否竞选警长 - 通过AI智能决策"""
+        return await self.ai.decide_sheriff_candidacy(self, game_state)
 
     async def make_sheriff_campaign_speech(self, game_state: 'GameState') -> str:
         """AI生成竞选宣言"""
@@ -109,9 +141,8 @@ class AIPlayer(Player):
         self,
         game_state: 'GameState'
     ) -> Optional['Player']:
-        """AI警长选择继承人"""
-        from roles.base_role import RoleCamp, RoleType
-        import random
+        """AI警长选择继承人 - 通过AI智能决策"""
+        from roles.base_role import RoleCamp
 
         candidates = [p for p in game_state.alive_players if p.id != self.id]
 
@@ -120,7 +151,6 @@ class AIPlayer(Player):
 
         if self.role.camp == RoleCamp.WEREWOLF:
             # 狼人警长：使用AI智能选择对狼人胜利最有利的继承人
-            # 可以传给任何存活玩家（包括好人），策略性选择
             choice = await self.ai.choose_sheriff_successor_strategically(
                 self,
                 game_state,
@@ -128,9 +158,10 @@ class AIPlayer(Player):
             )
             return choice
         else:
-            # 好人警长传给神职
-            gods = [c for c in candidates if c.role.role_type in [RoleType.SEER, RoleType.WITCH, RoleType.HUNTER]]
-            if gods:
-                return random.choice(gods)
-            # 否则随机传给好人
-            return random.choice(candidates)
+            # 好人警长：使用AI智能选择基于角色分析
+            choice = await self.ai.choose_sheriff_successor_for_good(
+                self,
+                game_state,
+                candidates
+            )
+            return choice

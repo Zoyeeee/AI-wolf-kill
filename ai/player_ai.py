@@ -526,3 +526,252 @@ class PlayerAI:
                 return num
 
         return None
+
+    async def decide_sheriff_candidacy(
+        self,
+        player: 'Player',
+        game_state: 'GameState'
+    ) -> bool:
+        """
+        AI决定是否竞选警长
+
+        Args:
+            player: 当前玩家
+            game_state: 游戏状态
+
+        Returns:
+            bool: 是否竞选警长
+        """
+        # 获取历史记录
+        if player.role.camp == RoleCamp.WEREWOLF:
+            full_history = game_state.get_combined_history_for_werewolf(player.id)
+        else:
+            full_history = game_state.get_full_conversation_history()
+
+        # 获取角色分析
+        role_analysis = self._get_role_analysis_summary(player)
+
+        alive_list = ", ".join([f"{p.name}（{p.id}号）" for p in game_state.alive_players])
+
+        prompt = player_prompts.SHERIFF_CANDIDACY_DECISION.format(
+            player_name=player.name,
+            player_id=player.id,
+            role=player.role.role_type.value,
+            round=game_state.round_number,
+            alive_players=alive_list,
+            full_history=full_history or "暂无历史记录",
+            role_analysis=role_analysis
+        )
+
+        response = await self.llm.generate(prompt)
+
+        # 解析返回结果
+        if response and "yes" in response.lower():
+            return True
+        else:
+            return False
+
+    async def choose_sheriff_successor_for_good(
+        self,
+        player: 'Player',
+        game_state: 'GameState',
+        candidates: List['Player']
+    ) -> Optional['Player']:
+        """
+        好人警长智能选择警徽继承人
+
+        Args:
+            player: 好人警长
+            game_state: 游戏状态
+            candidates: 可选继承人列表
+
+        Returns:
+            Optional[Player]: 选择的继承人，None表示撕毁警徽
+        """
+        if not candidates:
+            return None
+
+        # 获取历史记录
+        full_history = game_state.get_full_conversation_history()
+
+        # 获取角色分析
+        role_analysis = self._get_role_analysis_summary(player)
+
+        # 获取可见信息
+        visible_info = self._get_visible_info(player, game_state)
+
+        # 构建候选人列表信息
+        candidate_info = []
+        for c in candidates:
+            candidate_info.append(f"{c.name}（{c.id}号）")
+
+        # 估计存活狼人和好人数量
+        werewolves = game_state.get_alive_werewolves()
+        good_guys = [p for p in game_state.alive_players if p.role.camp == RoleCamp.VILLAGER]
+
+        # 构建提示词
+        prompt = player_prompts.GOOD_SHERIFF_SUCCESSION.format(
+            player_name=player.name,
+            player_id=player.id,
+            role=player.role.role_type.value,
+            werewolf_count=len(werewolves),
+            good_count=len(good_guys),
+            candidates="\n".join(candidate_info),
+            full_history=full_history or "暂无历史",
+            role_analysis=role_analysis,
+            visible_info=visible_info,
+            round=game_state.round_number
+        )
+
+        response = await self.llm.generate(prompt)
+
+        # 解析目标ID
+        target_id = self._extract_player_id(response, candidates)
+
+        if target_id == 0:  # 0表示撕毁警徽
+            return None
+
+        if target_id:
+            for c in candidates:
+                if c.id == target_id:
+                    return c
+
+        # 默认随机选择
+        import random
+        return random.choice(candidates) if candidates else None
+
+    async def update_role_beliefs(
+        self,
+        player: 'Player',
+        game_state: 'GameState',
+        recent_speaker_id: int,
+        recent_speech: str
+    ) -> None:
+        """
+        更新AI对其他玩家角色的推理分析
+
+        Args:
+            player: 当前AI玩家
+            game_state: 游戏状态
+            recent_speaker_id: 最近发言的玩家ID
+            recent_speech: 最近的发言内容
+        """
+        # 获取历史记录
+        if player.role.camp == RoleCamp.WEREWOLF:
+            full_history = game_state.get_combined_history_for_werewolf(player.id)
+        else:
+            full_history = game_state.get_full_conversation_history()
+
+        # 获取当前推理
+        current_beliefs = self._get_role_analysis_summary(player)
+
+        # 获取可见信息
+        visible_info = self._get_visible_info(player, game_state)
+
+        alive_list = ", ".join([f"{p.name}（{p.id}号）" for p in game_state.alive_players])
+
+        # 构建提示词
+        prompt = player_prompts.UPDATE_ROLE_BELIEFS.format(
+            player_name=player.name,
+            player_id=player.id,
+            role=player.role.role_type.value,
+            recent_speech=f"{recent_speaker_id}号玩家: {recent_speech}",
+            round=game_state.round_number,
+            alive_players=alive_list,
+            full_history=full_history or "暂无历史记录",
+            current_beliefs=current_beliefs,
+            visible_info=visible_info
+        )
+
+        response = await self.llm.generate(prompt)
+
+        # 解析JSON并更新player的role_beliefs
+        try:
+            import json
+            # 提取JSON内容
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                beliefs_data = json.loads(json_match.group())
+                # 更新玩家的角色推理数据
+                if hasattr(player, 'role_beliefs'):
+                    player.role_beliefs = beliefs_data
+        except Exception as e:
+            # 解析失败时保持原有推理不变
+            pass
+
+    def _get_role_analysis_summary(self, player: 'Player') -> str:
+        """
+        获取AI对其他玩家的角色分析摘要
+
+        Args:
+            player: 当前玩家
+
+        Returns:
+            str: 角色分析摘要
+        """
+        if not hasattr(player, 'role_beliefs') or not player.role_beliefs:
+            return "暂无角色分析数据"
+
+        summary_lines = []
+        for pid, analysis in player.role_beliefs.items():
+            suspected_roles = ", ".join(analysis.get('suspected_roles', ['未知']))
+            camp = analysis.get('camp_belief', 'unknown')
+            confidence = analysis.get('confidence', 'low')
+            reasoning = analysis.get('reasoning', '暂无')
+
+            camp_cn = {"good": "好人", "werewolf": "狼人", "unknown": "未知"}.get(camp, "未知")
+            confidence_cn = {"high": "高", "medium": "中", "low": "低"}.get(confidence, "低")
+
+            summary_lines.append(
+                f"{pid}号玩家: 可能是{suspected_roles}, "
+                f"阵营倾向={camp_cn}, 信心={confidence_cn}, "
+                f"依据: {reasoning}"
+            )
+
+        return "\n".join(summary_lines) if summary_lines else "暂无角色分析数据"
+
+    def _get_visible_info(self, player: 'Player', game_state: 'GameState') -> str:
+        """
+        获取玩家的可见信息（根据角色不同）
+
+        Args:
+            player: 当前玩家
+            game_state: 游戏状态
+
+        Returns:
+            str: 可见信息摘要
+        """
+        info_lines = []
+
+        # 预言家的查验结果
+        if player.role.role_type == RoleType.SEER:
+            check_results = game_state.seer_check_results.get(player.id, [])
+            if check_results:
+                info_lines.append("【预言家查验结果】")
+                for result in check_results:
+                    info_lines.append(f"  {result}")
+            else:
+                info_lines.append("【预言家查验结果】暂无")
+
+        # 女巫的用药历史
+        elif player.role.role_type == RoleType.WITCH:
+            witch_history = game_state.get_witch_action_summary()
+            info_lines.append("【女巫用药历史】")
+            info_lines.append(f"  {witch_history}")
+
+        # 狼人知道队友
+        elif player.role.camp == RoleCamp.WEREWOLF:
+            werewolves = game_state.get_alive_werewolves()
+            teammates = [w for w in werewolves if w.id != player.id]
+            if teammates:
+                info_lines.append("【狼人队友】")
+                for t in teammates:
+                    info_lines.append(f"  {t.name}（{t.id}号）")
+            else:
+                info_lines.append("【狼人队友】无其他队友")
+
+        # 普通村民和猎人没有特殊可见信息
+        else:
+            info_lines.append("【可见信息】无特殊信息")
+
+        return "\n".join(info_lines)
