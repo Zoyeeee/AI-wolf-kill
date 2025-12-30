@@ -103,6 +103,24 @@ class WolfkillGame:
                 return player
         return None
 
+    async def check_and_handle_victory(self, context: str = "") -> bool:
+        """
+        检查并处理游戏胜利
+
+        Args:
+            context: 检查的上下文（用于日志）
+
+        Returns:
+            bool: 如果游戏结束返回True，否则返回False
+        """
+        winner = self.game_state.is_game_over()
+        if winner:
+            if context:
+                print(f"\n[游戏结束] 在{context}后判定胜利")
+            await self.end_game(winner)
+            return True
+        return False
+
     async def run_game(self):
         """运行游戏主循环"""
         print("\n" + "="*50)
@@ -115,16 +133,10 @@ class WolfkillGame:
             # 夜晚阶段
             await self.night_phase()
 
-            # 检查游戏是否结束
-            winner = self.game_state.is_game_over()
-            if winner:
-                await self.end_game(winner)
-                break
-
             # 白天阶段
             await self.day_phase()
 
-            # 完整检查胜负（包括好人和狼人）
+            # 完整检查胜负（兜底检查）
             winner = self.game_state.is_game_over()
             if winner:
                 await self.end_game(winner)
@@ -132,12 +144,6 @@ class WolfkillGame:
 
             # 投票阶段
             await self.vote_phase()
-
-            # 检查游戏是否结束
-            winner = self.game_state.is_game_over()
-            if winner:
-                await self.end_game(winner)
-                break
 
     async def night_phase(self):
         """夜晚阶段 - 完整实现"""
@@ -517,6 +523,12 @@ class WolfkillGame:
 
             await asyncio.sleep(1)
 
+            # 如果是immediate模式，立即检查胜利
+            config = game_config.victory_check_config
+            if config["check_granularity"] == "immediate":
+                if await self.check_and_handle_victory(f"{hunter.name}开枪射杀{target.name}"):
+                    return
+
             # 检查被枪杀的是否是警长，如果是可以传递警徽
             await self.handle_sheriff_death(target)
         else:
@@ -588,6 +600,12 @@ class WolfkillGame:
 
             await asyncio.sleep(1)
 
+            # 如果是immediate模式，立即检查胜利
+            config = game_config.victory_check_config
+            if config["check_granularity"] == "immediate":
+                if await self.check_and_handle_victory(f"{exiled_player.name}开枪射杀{target.name}"):
+                    return
+
             # 检查被枪杀的是否是警长，如果是可以传递警徽
             await self.handle_sheriff_death(target)
         else:
@@ -640,12 +658,27 @@ class WolfkillGame:
 
         await asyncio.sleep(1)
 
+        # 如果是immediate模式且配置要求在警长传递前检查
+        config = game_config.victory_check_config
+        if config["check_granularity"] == "immediate" and config["check_victory_before_sheriff_transfer"]:
+            if await self.check_and_handle_victory("夜晚死亡"):
+                return
+
         # 处理夜晚死亡的警长传递警徽
         for dead in deaths:
             await self.handle_sheriff_death(dead)
 
+        # 如果是immediate模式且配置不允许已分胜负时猎人开枪
+        if config["check_granularity"] == "immediate" and not config["allow_hunter_shoot_after_victory"]:
+            if await self.check_and_handle_victory("警长传递后"):
+                return
+
         # 处理猎人开枪（如果猎人被刀死）
         await self.handle_hunter_shoot(deaths)
+
+        # 完成死亡连锁后检查（after_chain模式，或immediate模式的最终检查）
+        if await self.check_and_handle_victory("夜晚死亡连锁处理完成"):
+            return
 
         await asyncio.sleep(1)
 
@@ -961,10 +994,21 @@ class WolfkillGame:
 
         await asyncio.sleep(1)
 
+        # 如果是immediate模式且配置要求在猎人开枪前检查
+        config = game_config.victory_check_config
+        if config["check_granularity"] == "immediate" and not config["allow_hunter_shoot_after_victory"]:
+            if await self.check_and_handle_victory("投票放逐"):
+                return
+
         # 检查被放逐的是否是猎人，如果是可以开枪
         await self.handle_hunter_shoot_after_vote(exiled)
 
+        # 完成死亡连锁后检查（after_chain模式，或immediate模式的最终检查）
+        if await self.check_and_handle_victory("投票死亡连锁处理完成"):
+            return
+
         # 检查被放逐的是否是警长，如果是可以传递警徽
+        # 只有在游戏未结束时才传递警徽
         await self.handle_sheriff_death(exiled)
 
     def show_round_info(self):

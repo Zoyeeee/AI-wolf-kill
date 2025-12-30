@@ -1,0 +1,339 @@
+{
+  "game_info": {
+    "end_time": "2025-12-30T09:56:49.696352",
+    "winner": "狼人阵营",
+    "total_rounds": 2,
+    "board_config": "basic",
+    "total_players": 9,
+    "alive_count": 6,
+    "dead_count": 3
+  },
+  "players": [
+    {
+      "id": 1,
+      "name": "test123213",
+      "role": "狼人",
+      "camp": "狼人阵营",
+      "is_alive": true,
+      "is_sheriff": true
+    },
+    {
+      "id": 2,
+      "name": "AI-2",
+      "role": "猎人",
+      "camp": "好人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    },
+    {
+      "id": 3,
+      "name": "AI-3",
+      "role": "村民",
+      "camp": "好人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    },
+    {
+      "id": 4,
+      "name": "AI-4",
+      "role": "预言家",
+      "camp": "好人阵营",
+      "is_alive": false,
+      "is_sheriff": false
+    },
+    {
+      "id": 5,
+      "name": "AI-5",
+      "role": "村民",
+      "camp": "好人阵营",
+      "is_alive": false,
+      "is_sheriff": false
+    },
+    {
+      "id": 6,
+      "name": "AI-6",
+      "role": "村民",
+      "camp": "好人阵营",
+      "is_alive": false,
+      "is_sheriff": false
+    },
+    {
+      "id": 7,
+      "name": "AI-7",
+      "role": "女巫",
+      "camp": "好人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    },
+    {
+      "id": 8,
+      "name": "AI-8",
+      "role": "狼人",
+      "camp": "狼人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    },
+    {
+      "id": 9,
+      "name": "AI-9",
+      "role": "狼人",
+      "camp": "狼人阵营",
+      "is_alive": true,
+      "is_sheriff": false
+    }
+  ],
+  "conversation_history": [
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 0,
+      "player_name": "系统",
+      "action_type": "announcement",
+      "content": "昨晚平安夜，无人死亡",
+      "timestamp": "2025-12-30T09:48:51.413745"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 7,
+      "player_name": "AI-7",
+      "action_type": "speech",
+      "content": "我是7号。昨晚平安夜，这很关键。女巫可能用了药，也可能是狼人空刀。我建议预言家尽快跳出来给信息，好人不要乱踩。目前信息太少，先听听前置位的发言，看看有没有人聊爆。",
+      "timestamp": "2025-12-30T09:48:56.658453"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 8,
+      "player_name": "AI-8",
+      "action_type": "speech",
+      "content": "我是8号。昨晚平安夜，确实很关键。女巫可能用药救了人，也可能是狼人空刀。我同意7号的观点，预言家应该尽快跳出来给信息，好人不要乱踩。目前信息太少，先听听前置位的发言，看看有没有人聊爆。",
+      "timestamp": "2025-12-30T09:49:21.360009"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 9,
+      "player_name": "AI-9",
+      "action_type": "speech",
+      "content": "我是9号。昨晚平安夜，确实有点意外。女巫可能用药救了人，也可能是狼人空刀。我同意前置位的观点，预言家应该尽快跳出来给信息，好人不要乱踩。目前信息太少，先听听后面的发言，看看有没有人聊爆。",
+      "timestamp": "2025-12-30T09:49:44.888687"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 4,
+      "player_name": "AI-4",
+      "action_type": "speech",
+      "content": "我是4号。前置位7、8、9的发言都比较相似，都在等预言家起跳，但信息确实有限。平安夜可能是女巫救人，也可能是狼人空刀。我建议预言家如果验到查杀可以果断跳出来带队，如果验到金水可以考虑先藏一轮。目前没有明显狼面，继续听发言。",
+      "timestamp": "2025-12-30T09:50:07.653861"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 2,
+      "player_name": "AI-2",
+      "action_type": "speech",
+      "content": "我是2号。前置位7、8、9的发言内容高度相似，都在重复平安夜的可能性和等预言家，缺乏独立分析，这种跟风行为需要关注。4号点出了这一点，并且给出了更具体的建议，聊得相对好一些。目前信息确实少，我建议预言家如果验到查杀可以跳出来带队，如果是金水可以再藏一轮看看。大家发言时多聊点自己的逻辑，别只是复读。",
+      "timestamp": "2025-12-30T09:50:33.734801"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 6,
+      "player_name": "AI-6",
+      "action_type": "speech",
+      "content": "我是6号村民。前置位7、8、9的发言确实很相似，都在重复平安夜和等预言家，缺乏个人视角，这种趋同需要警惕。2号点出了这一点并分析了4号，逻辑比较清晰。我目前没有明确狼坑，但建议预言家如果验到查杀可以跳出来，如果是金水可以再观察一轮。大家发言时多聊聊对前置位玩家的具体看法，别只复述现象。",
+      "timestamp": "2025-12-30T09:50:58.821326"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 5,
+      "player_name": "AI-5",
+      "action_type": "speech",
+      "content": "我是5号村民。前置位7、8、9的发言内容确实高度重复，像在传递某种共识，这种抱团感让我有点在意。2号和6号都指出了这一点，并且给出了更具体的分析，视角比较正。目前信息太少，预言家如果验到查杀可以直接跳出来带队，如果是金水可以再藏一轮。我建议后面发言的玩家多聊聊对前面这些相似发言的具体看法，别只停留在表面。",
+      "timestamp": "2025-12-30T09:51:25.833475"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 3,
+      "player_name": "AI-3",
+      "action_type": "speech",
+      "content": "我是3号村民。前置位7、8、9的发言确实高度雷同，都只重复了平安夜和等预言家，缺乏个人视角和深入分析，这种抱团复读的行为值得警惕。2号、4号、5号、6号都指出了这一点，并给出了更具体的逻辑，目前看来他们的思考量更足。我建议预言家如果验到查杀可以果断起跳，如果是金水可以暂缓。大家发言时多分析具体玩家的逻辑，不要只复述现象。",
+      "timestamp": "2025-12-30T09:51:56.370399"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 1,
+      "player_name": "test123213",
+      "action_type": "speech",
+      "content": "我是全场唯一预言家，昨天查杀的5号，5号是狼人，8号9号6号发言不做好，4号2号在我这好人面偏大；今天我要警徽，今天我们推5号，晚上我去验8号，如果8号是查杀我撕警徽，如果是好人我警徽给他",
+      "timestamp": "2025-12-30T09:52:54.050510"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 1,
+      "player_name": "test123213",
+      "action_type": "speech",
+      "content": "[竞选宣言] 我是全场唯一预言家，昨天查杀的5号，5号是狼人，8号9号6号发言不做好，4号2号在我这好人面偏大；今天我要警徽，今天我们推5号，晚上我去验8号，如果8号是查杀我撕警徽，如果是好人我警徽给他; 4号抢警徽可以默认狼",
+      "timestamp": "2025-12-30T09:53:40.121362"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 4,
+      "player_name": "AI-4",
+      "action_type": "speech",
+      "content": "[竞选宣言] 我是4号预言家，昨晚查验了3号，他是狼人。我竞选警长是为了带队归票，把3号这张明狼先票出去。前置位7、8、9的发言都比较划水，没有太多信息，但3号在我这里是定狼。警徽流我会先留警下的2号和5号，顺验。好人请把警徽给我，今天全票出3，晚上女巫毒人可以根据情况追轮次。预言家拿警徽才能保证验人信息不断，希望大家相信我。",
+      "timestamp": "2025-12-30T09:53:46.122843"
+    },
+    {
+      "round": 1,
+      "phase": "day",
+      "player_id": 0,
+      "player_name": "系统",
+      "action_type": "announcement",
+      "content": "test123213（1号）当选警长",
+      "timestamp": "2025-12-30T09:53:48.734624"
+    },
+    {
+      "round": 1,
+      "phase": "vote",
+      "player_id": 1,
+      "player_name": "test123213",
+      "action_type": "vote",
+      "content": "投票给AI-5",
+      "target_id": 5,
+      "timestamp": "2025-12-30T09:54:07.925232"
+    },
+    {
+      "round": 1,
+      "phase": "vote",
+      "player_id": 2,
+      "player_name": "AI-2",
+      "action_type": "vote",
+      "content": "投票给AI-5",
+      "target_id": 5,
+      "timestamp": "2025-12-30T09:54:09.899493"
+    },
+    {
+      "round": 1,
+      "phase": "vote",
+      "player_id": 3,
+      "player_name": "AI-3",
+      "action_type": "vote",
+      "content": "投票给AI-5",
+      "target_id": 5,
+      "timestamp": "2025-12-30T09:54:11.538626"
+    },
+    {
+      "round": 1,
+      "phase": "vote",
+      "player_id": 4,
+      "player_name": "AI-4",
+      "action_type": "vote",
+      "content": "投票给AI-5",
+      "target_id": 5,
+      "timestamp": "2025-12-30T09:54:12.974242"
+    },
+    {
+      "round": 1,
+      "phase": "vote",
+      "player_id": 5,
+      "player_name": "AI-5",
+      "action_type": "vote",
+      "content": "投票给test123213",
+      "target_id": 1,
+      "timestamp": "2025-12-30T09:54:14.507667"
+    },
+    {
+      "round": 1,
+      "phase": "vote",
+      "player_id": 6,
+      "player_name": "AI-6",
+      "action_type": "vote",
+      "content": "投票给AI-5",
+      "target_id": 5,
+      "timestamp": "2025-12-30T09:54:15.941612"
+    },
+    {
+      "round": 1,
+      "phase": "vote",
+      "player_id": 7,
+      "player_name": "AI-7",
+      "action_type": "vote",
+      "content": "投票给AI-5",
+      "target_id": 5,
+      "timestamp": "2025-12-30T09:54:17.579822"
+    },
+    {
+      "round": 1,
+      "phase": "vote",
+      "player_id": 8,
+      "player_name": "AI-8",
+      "action_type": "vote",
+      "content": "投票给AI-5",
+      "target_id": 5,
+      "timestamp": "2025-12-30T09:54:19.013749"
+    },
+    {
+      "round": 1,
+      "phase": "vote",
+      "player_id": 9,
+      "player_name": "AI-9",
+      "action_type": "vote",
+      "content": "投票给AI-5",
+      "target_id": 5,
+      "timestamp": "2025-12-30T09:54:20.800703"
+    },
+    {
+      "round": 1,
+      "phase": "vote",
+      "player_id": 0,
+      "player_name": "系统",
+      "action_type": "announcement",
+      "content": "AI-5（5号）被投票放逐，获得8.5票",
+      "timestamp": "2025-12-30T09:54:22.897497"
+    },
+    {
+      "round": 2,
+      "phase": "day",
+      "player_id": 0,
+      "player_name": "系统",
+      "action_type": "announcement",
+      "content": "昨晚死亡：AI-4（4号）、AI-6（6号）",
+      "timestamp": "2025-12-30T09:56:42.179045"
+    }
+  ],
+  "witch_actions": [
+    {
+      "round": 1,
+      "action_type": "save",
+      "target_name": "AI-5",
+      "target_id": 5,
+      "remaining_antidote": false,
+      "remaining_poison": true,
+      "timestamp": "2025-12-30T09:48:50.912129"
+    },
+    {
+      "round": 2,
+      "action_type": "poison",
+      "target_name": "AI-6",
+      "target_id": 6,
+      "remaining_antidote": false,
+      "remaining_poison": false,
+      "timestamp": "2025-12-30T09:56:39.087041"
+    }
+  ],
+  "seer_checks": {
+    "4": [
+      "AI-5（5号）是好人",
+      "AI-2（2号）是好人"
+    ]
+  },
+  "victory_reason": "\n【胜利原因】\n当前局势：3只狼人 vs 3个好人\n根据标准狼人杀规则，当狼人数量 >= 好人数量时，狼人已在投票中掌控局面，游戏结束。\n\n存活狼人：test123213（1号）, AI-8（8号）, AI-9（9号）\n存活好人：AI-2（2号，猎人）, AI-3（3号，村民）, AI-7（7号，女巫）\n"
+}
