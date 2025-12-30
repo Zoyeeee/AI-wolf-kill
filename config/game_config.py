@@ -62,6 +62,20 @@ class GameConfig:
     # Redis配置
     GAME_KEY_PREFIX = "game:"  # Redis键前缀
 
+    # 胜利判断配置
+    victory_check_config = {
+        # 是否允许已分胜负时猎人开枪（可能逆转结果）
+        "allow_hunter_shoot_after_victory": True,
+
+        # 是否在警长传递前判断胜利
+        "check_victory_before_sheriff_transfer": True,
+
+        # 胜利判断粒度：
+        # "immediate": 每次死亡后立即判断
+        # "after_chain": 完成完整死亡连锁后再判断
+        "check_granularity": "after_chain"
+    }
+
     @staticmethod
     def get_role_composition(config: str) -> Dict[str, int]:
         """获取指定配置的角色组成"""
